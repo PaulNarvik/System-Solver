@@ -2,10 +2,11 @@ function add_equation() {
     if (num_equations < 9) {
         num_equations++;
         
+        // L'équation finale
         let equation = document.createElement("tr");
-        
         equation.setAttribute("id", "equation_" + String(num_equations - 1));
         
+        // Bouton suppression
         let remove_equation_cell = document.createElement("td");
         let remove_equation_button = document.createElement("button");
         
@@ -16,9 +17,12 @@ function add_equation() {
         equation.appendChild(remove_equation_cell);
         
         for (let i = 0; i < num_variables; i++) {
-            let cell = create_html_variable(i, num_equations - 1)
+            // Champ et nom variable
+            let cell = create_html_variable(i, num_equations - 1, true)
             equation.appendChild(cell);
             
+
+            // Symbole "+"
             if (i != num_variables - 1) {
                 let plus = document.createElement("td");
 
@@ -28,14 +32,25 @@ function add_equation() {
                 equation.appendChild(plus);
             }
         }
+        
+        // Symbole "=" 
+        let equal = document.createElement("td");
+        equal.setAttribute("id", "equal_" + String(num_equations - 1));
+        equal.innerHTML = "= " + equal.innerHTML;
+
+        let equal_input = document.createElement("input");
+        equal_input.setAttribute("type", "text");
+        equal_input.setAttribute("inputmode", "numeric");
+        equal_input.setAttribute("pattern", "[0-9]*");
+        equal_input.setAttribute("maxlength", "2");
+        equal_input.setAttribute("class", "number_input");
+        equal_input.setAttribute("id", "equal_input_" + String(num_equations - 1));
+
+        equal.appendChild(equal_input);
+        equation.appendChild(equal);
+
+        // Ajout de l'équation
         tbody.appendChild(equation);
-        
-        let l = [];
-        for (let i = 0; i < num_variables; i++) {
-            l.push(0);
-        }
-        
-        coefficients.push(l);
     }
     else {
         alert("Vous avez trop d'équations actuellement");
@@ -48,8 +63,6 @@ function remove_equation(i) {
 
         let equation = document.getElementById("equation_" + String(i));
         equation.remove();
-
-        coefficients = coefficients.slice(0, i).concat(coefficients.slice(i + 1));
     }
     else {
         alert("Vous ne pouvez pas ne pas avoir d'équation");
@@ -61,17 +74,26 @@ function add_variable() {
         num_variables++;
     
         for (let i = 0; i < num_equations; i++) {
+            equation = tbody.children[i];
+
+            // Retrait "=" et champ associé
+            let equal = equation.lastChild;
+            equal.remove()
+
+            // Symbole "+"
             let plus = document.createElement("td");
 
             plus.innerHTML = "+";
             plus.setAttribute("id", "plus_" + String(i) + "_" + String(num_variables - 2));
 
-            tbody.children[i].appendChild(plus);
+            equation.appendChild(plus);
     
-            let cell = create_html_variable(num_variables - 1, i);
-            tbody.children[i].appendChild(cell);
+            // Champ créé
+            let cell = create_html_variable(num_variables - 1, i, true);
+            equation.appendChild(cell);
 
-            coefficients[i].push(0);
+            // Rajout du "=" et du champ
+            equation.appendChild(equal);
         }
 
         let empty_cell = document.createElement("td");
@@ -112,9 +134,6 @@ function remove_variable(i) {
                 let plus = document.getElementById("plus_" + String(j) + "_" + String(i - 1));
                 plus.remove();
             }
-
-            // Suppression des coefficients de la variable
-            coefficients[j] = coefficients[j].slice(0, i).concat(coefficients[j].slice(i + 1));
         }
 
         // Suppresssion des boutons "-" des variables
@@ -131,7 +150,7 @@ function remove_variable(i) {
                 let coefficient_cell = document.getElementById("member_" + String(j) + "_" + String(i));
                 let value = coefficient_cell.firstChild.value;
 
-                let new_coefficient_cell = create_html_variable(i - 1, j);
+                let new_coefficient_cell = create_html_variable(i - 1, j, true);
                 new_coefficient_cell.firstChild.value = value;
 
                 tbody.children[j].replaceChild(new_coefficient_cell, coefficient_cell);
@@ -160,8 +179,7 @@ function remove_variable(i) {
     }
 }
     
-
-function create_html_variable(i, j) {
+function create_html_variable(i, j, letter) {
     let cell = document.createElement("td");
     let num_input = document.createElement("input");
 
@@ -171,12 +189,14 @@ function create_html_variable(i, j) {
     num_input.setAttribute("inputmode", "numeric");
     num_input.setAttribute("pattern", "[0-9]*");
     num_input.setAttribute("maxlength", "2");
-    num_input.setAttribute("name", LETTERS[i]);
     num_input.setAttribute("class", "number_input");
     num_input.setAttribute("id", "coefficient_" + String(j) + "_" + String(i));
-
+    
     cell.appendChild(num_input);
-    cell.innerHTML += " " + LETTERS[i];
+
+    if (letter) {
+        cell.innerHTML += " " + LETTERS[i];
+    }
 
     return cell;
 }
