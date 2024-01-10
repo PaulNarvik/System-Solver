@@ -16,7 +16,7 @@ function add_equation() {
         equation.appendChild(remove_equation_cell);
         
         for (let i = 0; i < num_variables; i++) {
-            let cell = create_html_variable(i)
+            let cell = create_html_variable(i, num_equations - 1)
             equation.appendChild(cell);
             
             if (i != num_variables - 1) {
@@ -68,7 +68,7 @@ function add_variable() {
 
             tbody.children[i].appendChild(plus);
     
-            let cell = create_html_variable(num_variables - 1);
+            let cell = create_html_variable(num_variables - 1, i);
             tbody.children[i].appendChild(cell);
 
             coefficients[i].push(0);
@@ -93,7 +93,6 @@ function add_variable() {
     else {
         alert("Vous avez atteint le nombre maximal de variables");
     }
-    console.log(num_variables)
 }
 
 function remove_variable(i) {
@@ -124,10 +123,37 @@ function remove_variable(i) {
 
         minus_cell.remove();
         empty_cell.remove();
-    
-        // Inversion des lettres de la liste
-        let deleted_variable = LETTERS[i];
-        LETTERS = LETTERS.slice(0, i).concat(LETTERS.slice(i + 1)).concat([deleted_variable]);
+
+        // Modification des ids
+        for (i = i + 1; i < num_variables + 1; i++) {
+            for (let j = 0; j < num_equations; j++) {
+                // Modification champs coefficents
+                let coefficient_cell = document.getElementById("member_" + String(j) + "_" + String(i));
+                let value = coefficient_cell.firstChild.value;
+
+                let new_coefficient_cell = create_html_variable(i - 1, j);
+                new_coefficient_cell.firstChild.value = value;
+
+                tbody.children[j].replaceChild(new_coefficient_cell, coefficient_cell);
+
+                // Modification "+"
+                if (i < num_variables) {
+                    let plus = document.getElementById("plus_" + String(j) + "_" + String(i));
+                    plus.setAttribute("id", plus.id.slice(0, -1) + String(i - 1));
+                }
+            }
+
+            // Modification bouton supprimer
+            let button_cell = document.getElementById("button_cell_" + String(i));
+            button_cell.id = button_cell.id.slice(0, -1) + String(i - 1);
+
+            let button = button_cell.firstChild;
+            button.setAttribute("onclick", button.getAttribute("onclick").slice(0, -2) + String(i - 1) + ")");
+
+            // Modification espace vide (ligne suppression)
+            let empty_cell = document.getElementById("empty_cell_" + String(i));
+            empty_cell.setAttribute("id", empty_cell.getAttribute("id").slice(0, -1) + String(i - 1));
+        }
     }
     else {
         alert("Vous ne pouvez pas ne pas avoir de variables");
@@ -135,11 +161,11 @@ function remove_variable(i) {
 }
     
 
-function create_html_variable(i) {
+function create_html_variable(i, j) {
     let cell = document.createElement("td");
     let num_input = document.createElement("input");
 
-    cell.setAttribute("id", "member_" + String(num_equations - 1) + "_" + String(i))
+    cell.setAttribute("id", "member_" + String(j) + "_" + String(i))
     
     num_input.setAttribute("type", "text");
     num_input.setAttribute("inputmode", "numeric");
@@ -147,7 +173,7 @@ function create_html_variable(i) {
     num_input.setAttribute("maxlength", "2");
     num_input.setAttribute("name", LETTERS[i]);
     num_input.setAttribute("class", "number_input");
-    num_input.setAttribute("id", "coefficient_" + String(num_equations - 1) + "_" + String(i));
+    num_input.setAttribute("id", "coefficient_" + String(j) + "_" + String(i));
 
     cell.appendChild(num_input);
     cell.innerHTML += " " + LETTERS[i];
@@ -169,8 +195,16 @@ function reset_coefficients() {
     }
 }
 
-// Éléments HTML
+function get_coefficients() {
+    for (let i = 0; i < num_equations; i++) {
+        for (let j = 0; j < num_variables; j++) {
+            coefficients[i][j] = Number(document.getElementById("coefficient_" + String(i) + "_" + String(j)).value);
+        }
+    }
+    console.log(coefficients)
+}
 
+// Éléments HTML
 let systeme = document.getElementById("system");
 
 let tbody = document.createElement("tbody");
@@ -180,20 +214,17 @@ let line_supp_variables = document.createElement("tr");
 systeme.appendChild(line_supp_variables);
 
 // Paramètres
-
-let LETTERS = ["x", "y", "z", "t", "a", "b", "c"];
+let LETTERS = ["x", "y", "z", "t", "a", "b", "c", "d", "e"];
 let BASE_NUM_EQUATIONS = 2;
 let BASE_NUM_VARIABLES = 2;
 
 // Variables utilisées
-
 let num_equations = 0;
 let num_variables = 0;
 
 let coefficients = [];
 
 // Principal
-
 for (let i = 0; i < BASE_NUM_VARIABLES; i++) {
     add_variable();
 }
