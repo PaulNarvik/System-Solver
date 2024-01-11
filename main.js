@@ -234,7 +234,7 @@ let line_supp_variables = document.createElement("tr");
 systeme.appendChild(line_supp_variables);
 
 // Paramètres
-let LETTERS = ["x", "y", "z", "t", "a", "b", "c", "d", "e"];
+let LETTERS = ["x", "y", "z", "t", "a", "b", "c", "d", "e", "f"];
 let BASE_NUM_EQUATIONS = 2;
 let BASE_NUM_VARIABLES = 2;
 
