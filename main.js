@@ -1,5 +1,5 @@
 function add_equation() {
-    if (num_equations < 9) {
+    if (num_equations < 10) {
         num_equations++;
         
         // L'équation finale
