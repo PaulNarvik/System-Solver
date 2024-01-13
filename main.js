@@ -9,6 +9,8 @@ function add_equation() {
         // Bouton suppression
         let remove_equation_cell = document.createElement("td");
         let remove_equation_button = document.createElement("button");
+
+        remove_equation_cell.setAttribute("id", "cell_supp_equation_" + String(num_equations - 1))
         
         remove_equation_button.innerHTML = "-";
         remove_equation_button.setAttribute("onclick", "remove_equation(" + String(num_equations - 1) +")");
@@ -53,16 +55,55 @@ function add_equation() {
         tbody.appendChild(equation);
     }
     else {
-        alert("Vous avez trop d'équations actuellement");
+        alert("Vous avez atteint le nombre maximal d'équations");
     }
 }
 
 function remove_equation(i) {
     if (num_equations > 1) {
         num_equations--;
-
+        
+        // Suppresson de la ligne d'équation
         let equation = document.getElementById("equation_" + String(i));
         equation.remove();
+
+        // Modification des ids
+        for (i = i + 1; i < num_equations + 1; i++) {
+            for (let j = 0; j < num_variables; j++) {
+                // Modification champs coefficents
+                let coefficient_cell = document.getElementById("member_" + String(i) + "_" + String(j));
+                let value = coefficient_cell.firstChild.value;
+                
+                let new_coefficient_cell = create_html_variable(j, i - 1, true);
+                new_coefficient_cell.firstChild.value = value;
+
+                tbody.children[i - 1].replaceChild(new_coefficient_cell, coefficient_cell);
+
+                // Modification "+"
+                if (j < num_variables - 1) {
+                    let plus = document.getElementById("plus_" + String(i) + "_" + String(j));
+                    plus.setAttribute("id", plus.id.slice(0, -3) + String(i - 1) + plus.id.slice(-2));
+                }
+            }
+            
+            // Changement id équations
+            let equation = document.getElementById("equation_" + String(i));
+            equation.setAttribute("id", "equation_" + String(i - 1));
+
+            // Changement id "-"
+            let minus_equation_cell = document.getElementById("cell_supp_equation_" + String(i));            
+            let minus_equation_button = minus_equation_cell.firstChild;
+
+            minus_equation_cell.setAttribute("id", "cell_supp_equation_" + String(i - 1));
+            minus_equation_button.setAttribute("onclick", "remove_equation(" + String(i - 1) + ")");
+
+            // Changement id "=" et champ associé
+            let equal_cell = document.getElementById("equal_" + String(i));
+            equal_cell.setAttribute("id", "equal_" + String(i - 1));
+
+            let equal_input = equal_cell.lastChild;
+            equal_input.setAttribute("id", "equal_input_" + String(i - 1));
+        }
     }
     else {
         alert("Vous ne pouvez pas ne pas avoir d'équation");
@@ -107,7 +148,7 @@ function add_variable() {
         button_cell.appendChild(button_supp);
 
         button_cell.setAttribute("class", "cell_supp_variable");
-        button_cell.setAttribute("id", "button_cell_" + String(num_variables - 1));
+        button_cell.setAttribute("id", "button_cell_variable_" + String(num_variables - 1));
 
         line_supp_variables.appendChild(empty_cell);
         line_supp_variables.appendChild(button_cell);
@@ -137,10 +178,10 @@ function remove_variable(i) {
         }
 
         // Suppresssion des boutons "-" des variables
-        let minus_cell = document.getElementById("button_cell_" + String(i));
+        let minus_variable_cell = document.getElementById("button_cell_variable_" + String(i));
         let empty_cell = document.getElementById("empty_cell_" + String(i));
 
-        minus_cell.remove();
+        minus_variable_cell.remove();
         empty_cell.remove();
 
         // Modification des ids
@@ -163,7 +204,7 @@ function remove_variable(i) {
             }
 
             // Modification bouton supprimer
-            let button_cell = document.getElementById("button_cell_" + String(i));
+            let button_cell = document.getElementById("button_cell_variable_" + String(i));
             button_cell.id = button_cell.id.slice(0, -1) + String(i - 1);
 
             let button = button_cell.firstChild;
