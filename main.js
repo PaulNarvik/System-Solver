@@ -242,21 +242,6 @@ function create_html_variable(i, j, letter) {
     return cell;
 }
 
-// Pas utilisé => à supprimer ?
-function reset_coefficients() {
-    coefficients.splice();
-
-    for (let i = 0; i < num_equations; i++) {
-        let l = [];
-    
-        for (let j = 0; j < num_variables; j++) {
-            l.push(0);
-        }
-    
-        coefficients.push(l);
-    }
-}
-
 function get_coefficients() {
     coefficients = [];
     for (let i = 0; i < num_equations; i++) {
@@ -272,32 +257,70 @@ function get_coefficients() {
     console.log(coefficients)
 }
 
+function matrix_from_array() {
+    let matrix = "$ \\left( \\begin{matrix}";
+
+    for (let i = 0; i < coefficients.length; i++) {
+        matrix += coefficients[i].slice(0, -1).join(" & ") + "\\\\";
+    }
+
+    matrix +="\\end{matrix} \\text{ } \\left| \\text{ } \\, \\begin{matrix}";
+
+    for (let i = 0; i < coefficients.length; i++) {
+        matrix += coefficients[i].slice(-1) + "\\\\";
+    }
+
+    matrix += "\\end{matrix} \\right. \\right) $"
+
+    return matrix;
+}
+
 function solve_system() {
     solution_p.innerHTML = ""
 
     // Récupère les entrées utilisateurs
     get_coefficients();
 
-    // Affiche une phrase
+    // Introduction système
     let sentence_1 = document.createElement("p");
     sentence_1.innerHTML = "Vous avez entré le système suivant :";
     solution_p.appendChild(sentence_1);
 
     // Création du système
-    let equ_1 = document.createElement("p");
-    solution_p.appendChild(equ_1);
-
-    let system_base = "$$ \\left \\{ \\begin{array}{c @{=} c} ";
+    let system_base = "$ \\left \\{ \\begin{array}{c @{=} c} ";
 
     for (let i = 0; i < coefficients.length; i++) {
-        system_base += coefficients[i].slice(0, -1).join("+");
-        system_base += "=" + String(coefficients[i].slice(-1)) + (i != coefficients.length - 1 ? " \\\\ " : "");
+        for (let j = 0; j < coefficients[i].length; j++) {
+            if (j < coefficients[i].length - 1) {
+                if (coefficients[i][j] != 0) {
+                    system_base += String(coefficients[i][j]) + LETTERS[j] + (j < coefficients[i].length - 2 ? "+" : "");
+                }
+            } else {
+                system_base += "=" + String(coefficients[i][j]);
+            }
+        }
+        if (i < coefficients.length - 1) {
+            system_base += (i != coefficients.length - 1 ? "\\\\" : "");
+        }
     }
 
-    system_base += "\\end{array} \\right. $$";
+    system_base += "\\end{array} \\right. $";
 
-    equ_1.innerHTML = system_base;
-    MathJax.typeset([equ_1]);
+    solution_p.innerHTML += system_base;
+
+    // Introduction matrice
+    let sentence_2 = document.createElement("p");
+    sentence_2.innerHTML = "Écrivons la matrice augmentée du système :";
+    solution_p.appendChild(sentence_2);
+
+    // Création de la matrice
+    matrice_initial = matrix_from_array(coefficients);
+    solution_p.innerHTML += matrice_initial;
+
+    solution_p.innerHTML += "$\\overset{\\sim}{\\underset{L}\\,}$"
+
+    // Conversion LaTex => HTML
+    MathJax.typeset([solution_p]);
 }
 
 // Éléments HTML
