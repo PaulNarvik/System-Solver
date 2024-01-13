@@ -283,28 +283,31 @@ function solve_system() {
 
     // Introduction système
     let sentence_1 = document.createElement("p");
-    sentence_1.innerHTML = "Vous avez entré le système suivant :";
+    sentence_1.innerHTML = "Vous avez entrez le système suivant :";
     solution_p.appendChild(sentence_1);
 
     // Création du système
-    let system_base = "$ \\left \\{ \\begin{array}{c @{=} c} ";
+    let system_base = "$ \\left \\{ \\begin{aligned}";
 
     for (let i = 0; i < coefficients.length; i++) {
         for (let j = 0; j < coefficients[i].length; j++) {
             if (j < coefficients[i].length - 1) {
                 if (coefficients[i][j] != 0) {
-                    system_base += String(coefficients[i][j]) + LETTERS[j] + (j < coefficients[i].length - 2 ? "+" : "");
+                    system_base += (coefficients[i][j] != 1 ? String(coefficients[i][j]) : "") + LETTERS[j] + "+";
                 }
             } else {
-                system_base += "=" + String(coefficients[i][j]);
+                system_base += "&=" + String(coefficients[i][j]);
             }
+        }
+        if (system_base.slice(-4, -3) == "+") {
+            system_base = system_base.slice(0, -4) + system_base.slice(-3);
         }
         if (i < coefficients.length - 1) {
             system_base += (i != coefficients.length - 1 ? "\\\\" : "");
         }
     }
 
-    system_base += "\\end{array} \\right. $";
+    system_base += "\\end{aligned} \\right. $";
 
     solution_p.innerHTML += system_base;
 
