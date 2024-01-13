@@ -6,7 +6,12 @@
     <link rel="stylesheet" href="style.css">
     <script src="main.js" defer></script>
     <title>Solveur de systèmes</title>
+
+    <!-- MathJax -->
+    <script src="mathjax-config.js" defer></script>
+    <script type="text/javascript" id="MathJax-script" async src="tex-svg.js"></script>
 </head>
+
 <body>
     <h1>Solveur de systèmes</h1>
 
@@ -16,6 +21,8 @@
 
     <button onclick="add_equation()">Ajouter une équation</button>
     <button onclick="add_variable()">Ajouter une variable</button>
-    <button onclick="get_coefficients()">Valider</button>
+    <button onclick="solve_system()">Valider</button>
+
+    <p id="solution"></p>
 </body>
 </html>

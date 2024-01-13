@@ -242,6 +242,7 @@ function create_html_variable(i, j, letter) {
     return cell;
 }
 
+// Pas utilisé => à supprimer ?
 function reset_coefficients() {
     coefficients.splice();
 
@@ -257,22 +258,60 @@ function reset_coefficients() {
 }
 
 function get_coefficients() {
+    coefficients = [];
     for (let i = 0; i < num_equations; i++) {
+        let line = []
         for (let j = 0; j < num_variables; j++) {
-            coefficients[i][j] = Number(document.getElementById("coefficient_" + String(i) + "_" + String(j)).value);
+            line.push(Number(document.getElementById("coefficient_" + String(i) + "_" + String(j)).value));
         }
+        let equal = Number(document.getElementById("equal_input_" + String(i)).value);
+        line.push(equal);
+
+        coefficients.push(line);
     }
     console.log(coefficients)
 }
 
+function solve_system() {
+    solution_p.innerHTML = ""
+
+    // Récupère les entrées utilisateurs
+    get_coefficients();
+
+    // Affiche une phrase
+    let sentence_1 = document.createElement("p");
+    sentence_1.innerHTML = "Vous avez entré le système suivant :";
+    solution_p.appendChild(sentence_1);
+
+    // Création du système
+    let equ_1 = document.createElement("p");
+    solution_p.appendChild(equ_1);
+
+    let system_base = "$$ \\left \\{ \\begin{array}{c @{=} c} ";
+
+    for (let i = 0; i < coefficients.length; i++) {
+        system_base += coefficients[i].slice(0, -1).join("+");
+        system_base += "=" + String(coefficients[i].slice(-1)) + (i != coefficients.length - 1 ? " \\\\ " : "");
+    }
+
+    system_base += "\\end{array} \\right. $$";
+
+    equ_1.innerHTML = system_base;
+    MathJax.typeset([equ_1]);
+}
+
 // Éléments HTML
+let body = document.lastChild.lastChild;
+
 let systeme = document.getElementById("system");
 
 let tbody = document.createElement("tbody");
-systeme.appendChild(tbody)
+systeme.appendChild(tbody);
 
 let line_supp_variables = document.createElement("tr");
 systeme.appendChild(line_supp_variables);
+
+let solution_p = document.getElementById("solution");
 
 // Paramètres
 let LETTERS = ["x", "y", "z", "t", "a", "b", "c", "d", "e", "f"];
