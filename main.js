@@ -242,6 +242,14 @@ function create_html_variable(i, j, letter) {
     return cell;
 }
 
+function count(l, n) {
+    c = 0;
+    for (i of l) {
+        c += i == n ? 1 : 0;
+    }
+    return c;
+}
+
 function get_coefficients() {
     coefficients = [];
     for (let i = 0; i < num_equations; i++) {
@@ -276,52 +284,89 @@ function matrix_from_array() {
 }
 
 function solve_system() {
-    solution_p.innerHTML = ""
+    // Réinitialisation du paragraphe
+    solution_p.innerHTML = "";
+
+    // Variables d'état du système
+    let is_valid = true;
+    let is_solvable = true;
+    let is_solved = false
 
     // Récupère les entrées utilisateurs
     get_coefficients();
 
-    // Introduction système
-    let sentence_1 = document.createElement("p");
-    sentence_1.innerHTML = "Vous avez entrez le système suivant :";
-    solution_p.appendChild(sentence_1);
-
-    // Création du système
-    let system_base = "$ \\left \\{ \\begin{aligned}";
-
-    for (let i = 0; i < coefficients.length; i++) {
-        for (let j = 0; j < coefficients[i].length; j++) {
-            if (j < coefficients[i].length - 1) {
-                if (coefficients[i][j] != 0) {
-                    system_base += (coefficients[i][j] != 1 ? String(coefficients[i][j]) : "") + LETTERS[j] + "+";
-                }
-            } else {
-                system_base += "&=" + String(coefficients[i][j]);
+    for (l of coefficients) {
+        if(count(l.slice(0, -1), 0) == l.length - 1 && is_valid) {
+            if (l.slice(-1) != 0) {
+                is_solvable = false;
             }
-        }
-        if (system_base.slice(-4, -3) == "+") {
-            system_base = system_base.slice(0, -4) + system_base.slice(-3);
-        }
-        if (i < coefficients.length - 1) {
-            system_base += (i != coefficients.length - 1 ? "\\\\" : "");
+            is_valid = false;
         }
     }
 
-    system_base += "\\end{aligned} \\right. $";
+    if (is_valid) {
+        // Introduction système
+        let sentence_1 = document.createElement("p");
+        sentence_1.innerHTML = "Vous avez entrez le système suivant :";
+        solution_p.appendChild(sentence_1);
+    
+        // Création du système
+        let system_base = "$ \\left \\{ \\begin{aligned}";
+    
+        for (let i = 0; i < coefficients.length; i++) {
+            for (let j = 0; j < coefficients[i].length; j++) {
+                if (j < coefficients[i].length - 1) {
+                    if (coefficients[i][j] != 0) {
+                        system_base += (coefficients[i][j] != 1 ? String(coefficients[i][j]) : "") + LETTERS[j] + "+";
+                    }
+                } else {
+                    system_base += "&=" + String(coefficients[i][j]);
+                }
+            }
+            if (system_base.slice(-4, -3) == "+") {
+                system_base = system_base.slice(0, -4) + system_base.slice(-3);
+            }
+            if (i < coefficients.length - 1) {
+                system_base += (i != coefficients.length - 1 ? "\\\\" : "");
+            }
+        }
+    
+        system_base += "\\end{aligned} \\right. $";
+    
+        solution_p.innerHTML += system_base;
+    
+        // Introduction matrice
+        let sentence_2 = document.createElement("p");
+        sentence_2.innerHTML = "Écrivons la matrice augmentée du système :";
+        solution_p.appendChild(sentence_2);
+    
+        // Création de la matrice
+        matrice_initial = matrix_from_array(coefficients);
+        solution_p.innerHTML += matrice_initial;
+    
+        // Résolution
+        while (is_solvable && !is_solved) {
 
-    solution_p.innerHTML += system_base;
+        }
+    
+        solution_p.innerHTML += "$\\overset{\\sim}{\\underset{L}\\,}$"
+    } else {
+        if (is_solvable) {
+            alert("Une ligne ne peut pas être vide.");
+        }
+    }
 
-    // Introduction matrice
-    let sentence_2 = document.createElement("p");
-    sentence_2.innerHTML = "Écrivons la matrice augmentée du système :";
-    solution_p.appendChild(sentence_2);
+    if (is_solvable) {
+        // Ensemble de solution
+    } else {
+        let conclusion = document.createElement("p");
+        conclusion.innerHTML = "Ce système n'admet aucune solution.";
 
-    // Création de la matrice
-    matrice_initial = matrix_from_array(coefficients);
-    solution_p.innerHTML += matrice_initial;
+        let set_solutions = "$ S = \\emptyset $";
 
-    solution_p.innerHTML += "$\\overset{\\sim}{\\underset{L}\\,}$"
-
+        solution_p.appendChild(conclusion);
+        solution_p.innerHTML += set_solutions;
+    }
     // Conversion LaTex => HTML
     MathJax.typeset([solution_p]);
 }
