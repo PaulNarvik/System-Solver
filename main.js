@@ -229,7 +229,7 @@ function create_html_variable(i, j, letter) {
     num_input.setAttribute("type", "text");
     num_input.setAttribute("inputmode", "numeric");
     num_input.setAttribute("pattern", "[0-9]*");
-    num_input.setAttribute("maxlength", "2");
+    num_input.setAttribute("maxlength", "3");
     num_input.setAttribute("class", "number_input");
     num_input.setAttribute("id", "coefficient_" + String(j) + "_" + String(i));
     
@@ -303,6 +303,33 @@ function matrix_from_array() {
     return matrix;
 }
 
+function system_line_from_array(i, n) {
+    let line = "";
+
+    for (let j = 0; j < n; j++) {
+        // Coefficient (i, j) non nul
+        if (coefficients[i][j] != 0) {
+            // Pas le premier élément et positif
+            if (j != 0 && coefficients[i][j] > 0) {
+                line += "+";
+            }
+
+            // Coefficient différent de 1 en absolue
+            if (Math.abs(coefficients[i][j]) != 1) {
+                line += String(coefficients[i][j]) + LETTERS[j];
+            }
+        }
+    }
+
+    if (line[0] == "+") {
+        line = line.slice(1);
+    }
+
+    line += "\\\\";
+
+    return line;
+}
+
 function solve_system() {
     // Réinitialisation du paragraphe
     solution_p.innerHTML = "";
@@ -343,32 +370,40 @@ function solve_system() {
         solution_p.appendChild(sentence_1);
     
         // Création du système
-        let system_base = "$ \\left \\{ \\begin{aligned}";
+        let base_systeme = "$ \\left \\{ \\begin{aligned}";
     
         for (let i = 0; i < coefficients.length; i++) {
-            for (let j = 0; j < coefficients[i].length; j++) {
-                if (j < coefficients[i].length - 1) {
-                    if (coefficients[i][j] != 0) {
-                        system_base += (coefficients[i][j] == 1 ? "" : coefficients[i][j] == -1 ? "-" : coefficients[i][j]) + LETTERS[j] + (coefficients[i][j + 1] > 0 ? "+" : "");
+            let line = "";
+
+            for (let j = 0; j < coefficients[0].length - 1; j++) {
+                // Coefficient (i, j) non nul
+                if (coefficients[i][j] != 0) {
+                    // Pas le premier élément et positif
+                    if (j != 0 && coefficients[i][j] > 0) {
+                        line += "+";
                     }
-                } else {
-                    system_base += "&=" + String(coefficients[i][j]);
+        
+                    // Coefficient différent de 1 en absolue
+                    if (Math.abs(coefficients[i][j]) != 1) {
+                        line += String(coefficients[i][j]) + LETTERS[j];
+                    }
                 }
             }
-            let to_slice = -(3 + String(coefficients[i].slice(-1)).length)
-            if (system_base.slice(to_slice, to_slice + 1) == "+" || system_base.slice(to_slice, to_slice + 1) == "-") {
-                system_base = system_base.slice(0, to_slice) + system_base.slice(to_slice + 1);
+
+            line += "&=" + coefficients[i].slice(-1);
+
+            // Démarre par un "+"
+            if (line[0] == "+") {
+                line = line.slice(1);
             }
-            if (i < coefficients.length - 1) {
-                system_base += (i != coefficients.length - 1 ? "\\\\" : "");
-            }
+        
+            line += "\\\\";
+            base_systeme += line;
         }
     
-        system_base += "\\end{aligned} \\right. $";
+        base_systeme += "\\end{aligned} \\right. $";
     
-        solution_p.innerHTML += system_base;
-
-        // Création "align*" /!\
+        solution_p.innerHTML += base_systeme;
     
         // Introduction matrice
         let sentence_2 = document.createElement("p");
@@ -425,7 +460,7 @@ function solve_system() {
                 }               
             }
 
-            matrices += " \\text{ }\\overset{\\sim}{\\underset{L}\\,} \\text{ } " + matrix_from_array() + "\\\\ \\\\"
+            matrices += " & \\text{ }\\overset{\\sim}{\\underset{L}\\,} \\text{ } " + matrix_from_array() + "\\\\ \\\\"
             
             // Vérifie que la matrice est compatible
             is_compatible = check_is_compatible();
@@ -443,8 +478,12 @@ function solve_system() {
         }
     }
 
-    if (is_compatible) {
-        // Ensemble de solution
+    if (is_compatible) { // /!\
+        let re_systeme = document.createElement("p");
+        re_systeme.innerHTML = "Ce qui donne le système suivant :";
+
+        // let conc_systeme =
+
     } else {
         let conclusion = document.createElement("p");
         conclusion.innerHTML = "Ce système est incompatible et n'admet donc aucune solution.";
