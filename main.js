@@ -229,7 +229,7 @@ function create_html_variable(i, j, letter) {
     num_input.setAttribute("type", "text");
     num_input.setAttribute("inputmode", "numeric");
     num_input.setAttribute("pattern", "[0-9]*");
-    num_input.setAttribute("maxlength", "2");
+    num_input.setAttribute("maxlength", "3");
     num_input.setAttribute("class", "number_input");
     num_input.setAttribute("id", "coefficient_" + String(j) + "_" + String(i));
     
@@ -240,6 +240,34 @@ function create_html_variable(i, j, letter) {
     }
 
     return cell;
+}
+
+function count(l, n) {
+    c = 0;
+    for (i of l) {
+        c += i == n ? 1 : 0;
+    }
+    return c;
+}
+
+function ppcm(a, b) {
+    function pgcd(a, b) {
+      if (b === 0) {
+        return a;
+      } else {
+        return pgcd(b, a % b);
+      }
+    }
+    return (a * b) / pgcd(a, b);
+}
+
+function check_is_compatible() {
+    for (l of coefficients) {
+        if (count(l.slice(0, -1), 0) == l.length - 1 && l.slice(-1) != 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function get_coefficients() {
@@ -258,7 +286,7 @@ function get_coefficients() {
 }
 
 function matrix_from_array() {
-    let matrix = "$ \\left( \\begin{matrix}";
+    let matrix = " \\left( \\begin{matrix}";
 
     for (let i = 0; i < coefficients.length; i++) {
         matrix += coefficients[i].slice(0, -1).join(" & ") + "\\\\";
@@ -270,58 +298,201 @@ function matrix_from_array() {
         matrix += coefficients[i].slice(-1) + "\\\\";
     }
 
-    matrix += "\\end{matrix} \\right. \\right) $"
+    matrix += "\\end{matrix} \\right. \\right) "
 
     return matrix;
 }
 
+function system_line_from_array(i, n) {
+    let line = "";
+
+    for (let j = 0; j < n; j++) {
+        // Coefficient (i, j) non nul
+        if (coefficients[i][j] != 0) {
+            // Pas le premier élément et positif
+            if (j != 0 && coefficients[i][j] > 0) {
+                line += "+";
+            }
+
+            // Coefficient différent de 1 en absolue
+            if (Math.abs(coefficients[i][j]) != 1) {
+                line += String(coefficients[i][j]) + LETTERS[j];
+            }
+        }
+    }
+
+    if (line[0] == "+") {
+        line = line.slice(1);
+    }
+
+    line += "\\\\";
+
+    return line;
+}
+
 function solve_system() {
-    solution_p.innerHTML = ""
+    // Réinitialisation du paragraphe
+    solution_p.innerHTML = "";
+
+    // Variables d'état du système
+    let is_valid = true;
+    let is_compatible = true;
 
     // Récupère les entrées utilisateurs
     get_coefficients();
 
-    // Introduction système
-    let sentence_1 = document.createElement("p");
-    sentence_1.innerHTML = "Vous avez entrez le système suivant :";
-    solution_p.appendChild(sentence_1);
-
-    // Création du système
-    let system_base = "$ \\left \\{ \\begin{aligned}";
-
-    for (let i = 0; i < coefficients.length; i++) {
-        for (let j = 0; j < coefficients[i].length; j++) {
-            if (j < coefficients[i].length - 1) {
-                if (coefficients[i][j] != 0) {
-                    system_base += (coefficients[i][j] != 1 ? String(coefficients[i][j]) : "") + LETTERS[j] + "+";
-                }
-            } else {
-                system_base += "&=" + String(coefficients[i][j]);
+    // Vérifie qu'aucune équation n'est vide (+ cas n = 0)
+    for (l of coefficients) {
+        if (count(l.slice(0, -1), 0) == l.length - 1) {
+            if (l.slice(-1) != 0) {
+                is_compatible = false;
             }
-        }
-        if (system_base.slice(-4, -3) == "+") {
-            system_base = system_base.slice(0, -4) + system_base.slice(-3);
-        }
-        if (i < coefficients.length - 1) {
-            system_base += (i != coefficients.length - 1 ? "\\\\" : "");
+            is_valid = false;
         }
     }
 
-    system_base += "\\end{aligned} \\right. $";
+    // Vérifie qu'aucune variable n'est vide
+    for (let i = 0; i < coefficients[0].length - 1; i++) {
+        let num_0 = 0;
 
-    solution_p.innerHTML += system_base;
+        for (let j = 0; j < coefficients.length - 1; j++) {
+            num_0 += coefficients[j][i] == 0 ? 1 : 0;
+        }
+        if (num_0 == coefficients.length) {
+            is_valid = false;
+        }
+    }
 
-    // Introduction matrice
-    let sentence_2 = document.createElement("p");
-    sentence_2.innerHTML = "Écrivons la matrice augmentée du système :";
-    solution_p.appendChild(sentence_2);
+    if (is_valid) {
+        // Introduction système
+        let sentence_1 = document.createElement("p");
+        sentence_1.innerHTML = "Vous avez entrez le système suivant :";
+        solution_p.appendChild(sentence_1);
+    
+        // Création du système
+        let base_systeme = "$ \\left \\{ \\begin{aligned}";
+    
+        for (let i = 0; i < coefficients.length; i++) {
+            let line = "";
 
-    // Création de la matrice
-    matrice_initial = matrix_from_array(coefficients);
-    solution_p.innerHTML += matrice_initial;
+            for (let j = 0; j < coefficients[0].length - 1; j++) {
+                // Coefficient (i, j) non nul
+                if (coefficients[i][j] != 0) {
+                    // Pas le premier élément et positif
+                    if (j != 0 && coefficients[i][j] > 0) {
+                        line += "+";
+                    }
+        
+                    // Coefficient différent de 1 en absolue
+                    if (Math.abs(coefficients[i][j]) != 1) {
+                        line += String(coefficients[i][j]) + LETTERS[j];
+                    }
+                }
+            }
 
-    solution_p.innerHTML += "$\\overset{\\sim}{\\underset{L}\\,}$"
+            line += "&=" + coefficients[i].slice(-1);
 
+            // Démarre par un "+"
+            if (line[0] == "+") {
+                line = line.slice(1);
+            }
+        
+            line += "\\\\";
+            base_systeme += line;
+        }
+    
+        base_systeme += "\\end{aligned} \\right. $";
+    
+        solution_p.innerHTML += base_systeme;
+    
+        // Introduction matrice
+        let sentence_2 = document.createElement("p");
+        sentence_2.innerHTML = "Écrivons la matrice augmentée du système :";
+        solution_p.appendChild(sentence_2);
+    
+        // Création de la matrice
+        matrice_initial = "$ \\begin{align*}" + matrix_from_array(coefficients);
+        solution_p.innerHTML += matrice_initial;
+
+        // Paramètres
+        let min_taille = Math.min(coefficients.length, coefficients[0].length);
+        let parameters = [];
+    
+        // Résolution
+        let matrices = "";
+
+        for (let i = 0; i < min_taille; i++) {
+            // Vérifier que le pivot n'est pas nul + inversion si besoin
+            if (coefficients[i][i] == 0) {
+                is_valid = false;
+                
+                for (let j = i + 1; j < coefficients.length; j++) {
+                    if (coefficients[j][i] != 0) {
+                        let temp = coefficients[i];
+                        coefficients[i] = coefficients[j];
+                        coefficients[j] = temp;
+                        
+                        is_valid = true;
+                    }
+                }
+                
+                if (!is_valid) {
+                    parameters.push(i);
+                }
+            }
+            
+            if (!(i in parameters)) {
+                // Ramener le pivot à 1 sur la colonne i
+                let n = coefficients[i][i];
+                for (let j = 0; j < coefficients[i].length; j++) {
+                    coefficients[i][j] /= n;
+                }
+                
+                // Vidage de la colonne du pivot
+                for (let j = 0; j < coefficients.length; j++) {
+                    if (i != j) {
+                        let n = coefficients[j][i] / coefficients[i][i];
+                        
+                        for (let k = 0; k < coefficients[0].length; k++) {
+                            coefficients[j][k] -= coefficients[i][k] * n;
+                        }
+                    }
+                }               
+            }
+
+            matrices += " & \\text{ }\\overset{\\sim}{\\underset{L}\\,} \\text{ } " + matrix_from_array() + "\\\\ \\\\"
+            
+            // Vérifie que la matrice est compatible
+            is_compatible = check_is_compatible();
+            if (!is_compatible) {
+                break;
+            }
+        }
+
+        matrices += "\\end{align*} $"
+
+        solution_p.innerHTML += matrices;
+    } else {
+        if (is_compatible) {
+            alert("Une équation/variable ne peut pas ne pas être utilisée.");
+        }
+    }
+
+    if (is_compatible) { // /!\
+        let re_systeme = document.createElement("p");
+        re_systeme.innerHTML = "Ce qui donne le système suivant :";
+
+        // let conc_systeme =
+
+    } else {
+        let conclusion = document.createElement("p");
+        conclusion.innerHTML = "Ce système est incompatible et n'admet donc aucune solution.";
+
+        let set_solutions = "$ S = \\emptyset $";
+
+        solution_p.appendChild(conclusion);
+        solution_p.innerHTML += set_solutions;
+    }
     // Conversion LaTex => HTML
     MathJax.typeset([solution_p]);
 }
