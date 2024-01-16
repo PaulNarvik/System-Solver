@@ -303,33 +303,6 @@ function matrix_from_array() {
     return matrix;
 }
 
-function system_line_from_array(i, n) {
-    let line = "";
-
-    for (let j = 0; j < n; j++) {
-        // Coefficient (i, j) non nul
-        if (coefficients[i][j] != 0) {
-            // Pas le premier élément et positif
-            if (j != 0 && coefficients[i][j] > 0) {
-                line += "+";
-            }
-
-            // Coefficient différent de 1 en absolue
-            if (Math.abs(coefficients[i][j]) != 1) {
-                line += String(coefficients[i][j]) + LETTERS[j];
-            }
-        }
-    }
-
-    if (line[0] == "+") {
-        line = line.slice(1);
-    }
-
-    line += "\\\\";
-
-    return line;
-}
-
 function solve_system() {
     // Réinitialisation du paragraphe
     solution_p.innerHTML = "";
@@ -440,8 +413,15 @@ function solve_system() {
                     parameters.push(i);
                 }
             }
+
+            let is_parameter = false;
+            for (j of parameters) {
+                if (i == j) {
+                    is_parameter = true;
+                }
+            }
             
-            if (!(i in parameters)) {
+            if (!is_parameter) {
                 // Ramener le pivot à 1 sur la colonne i
                 let n = coefficients[i][i];
                 for (let j = 0; j < coefficients[i].length; j++) {
@@ -458,6 +438,19 @@ function solve_system() {
                         }
                     }
                 }               
+            }
+
+            // Placer les lignes vides à la fin
+            for(let j = 0; j < coefficients.length; j++) {
+                if (count(coefficients[j], 0) == coefficients[0].length) {
+                    for (let k = coefficients.length - 1; k > j; k--) {
+                        if (count(coefficients[k], 0) != coefficients[0].length) {
+                            let temp = coefficients[j];
+                            coefficients[j] = coefficients[k];
+                            coefficients[k] = temp;
+                        }
+                    }
+                }
             }
 
             matrices += " & \\text{ }\\overset{\\sim}{\\underset{L}\\,} \\text{ } " + matrix_from_array() + "\\\\ \\\\"
