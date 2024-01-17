@@ -44,7 +44,7 @@ function add_equation() {
         equal_input.setAttribute("type", "text");
         equal_input.setAttribute("inputmode", "numeric");
         equal_input.setAttribute("pattern", "[0-9]*");
-        equal_input.setAttribute("maxlength", "2");
+        equal_input.setAttribute("maxlength", "3");
         equal_input.setAttribute("class", "number_input");
         equal_input.setAttribute("id", "equal_input_" + String(num_equations - 1));
 
@@ -282,7 +282,6 @@ function get_coefficients() {
 
         coefficients.push(line);
     }
-    console.log(coefficients)
 }
 
 function matrix_from_array() {
@@ -328,7 +327,7 @@ function solve_system() {
     for (let i = 0; i < coefficients[0].length - 1; i++) {
         let num_0 = 0;
 
-        for (let j = 0; j < coefficients.length - 1; j++) {
+        for (let j = 0; j < coefficients.length; j++) {
             num_0 += coefficients[j][i] == 0 ? 1 : 0;
         }
         if (num_0 == coefficients.length) {
@@ -351,15 +350,16 @@ function solve_system() {
             for (let j = 0; j < coefficients[0].length - 1; j++) {
                 // Coefficient (i, j) non nul
                 if (coefficients[i][j] != 0) {
-                    // Pas le premier élément et positif
-                    if (j != 0 && coefficients[i][j] > 0) {
+                    // Positif
+                    if (coefficients[i][j] > 0) {
                         line += "+";
                     }
         
                     // Coefficient différent de 1 en absolue
                     if (Math.abs(coefficients[i][j]) != 1) {
-                        line += String(coefficients[i][j]) + LETTERS[j];
+                        line += String(coefficients[i][j]);
                     }
+                    line += LETTERS[j];
                 }
             }
 
@@ -389,7 +389,7 @@ function solve_system() {
 
         // Paramètres
         let min_taille = Math.min(coefficients.length, coefficients[0].length);
-        let parameters = [];
+        parameters = [];
     
         // Résolution
         let matrices = "";
@@ -415,8 +415,8 @@ function solve_system() {
             }
 
             let is_parameter = false;
-            for (j of parameters) {
-                if (i == j) {
+            for (let j = 0; j < parameters.length; j++) {
+                if (i == parameters[j]) {
                     is_parameter = true;
                 }
             }
@@ -440,7 +440,7 @@ function solve_system() {
                 }               
             }
 
-            // Placer les lignes vides à la fin
+            // Placer les lignes vides à la fin de la matrice
             for(let j = 0; j < coefficients.length; j++) {
                 if (count(coefficients[j], 0) == coefficients[0].length) {
                     for (let k = coefficients.length - 1; k > j; k--) {
@@ -453,7 +453,7 @@ function solve_system() {
                 }
             }
 
-            matrices += " & \\text{ }\\overset{\\sim}{\\underset{L}\\,} \\text{ } " + matrix_from_array() + "\\\\ \\\\"
+            matrices += " & \\text{ }\\overset{\\sim}{\\underset{L}\\,} \\text{ } " + matrix_from_array() + "\\\\ \\\\";
             
             // Vérifie que la matrice est compatible
             is_compatible = check_is_compatible();
@@ -471,11 +471,62 @@ function solve_system() {
         }
     }
 
-    if (is_compatible) { // /!\
+    if (is_compatible) {
+        // Réécriture du système /!\ changement variable pour paramètres + lignes vides
         let re_systeme = document.createElement("p");
         re_systeme.innerHTML = "Ce qui donne le système suivant :";
 
-        // let conc_systeme =
+        solution_p.appendChild(re_systeme);
+        
+        let conc_systeme ="$ \\left \\{ \\begin{aligned}";
+        
+        for (let i = 0; i < coefficients.length; i++) {
+            let line_b_equal = "";
+            let line_a_equal = "";
+
+            for (let j = 0; j < coefficients[0].length - 1; j++) {
+                // Détermine si paramètre ou inconnue principale
+                let is_parameter = false;
+                for (let k = 0; k < parameters.length; k++) {
+                    if (j == parameters[k]) {
+                        is_parameter = true;
+                        coefficients[i][j] *= -1;
+                    }
+                }
+
+                // Coefficient (i, j) non nul
+                if (coefficients[i][j] != 0) {
+                    let elem = "";
+
+                    // Positif
+                    if (coefficients[i][j] > 0) {
+                        elem += "+";
+                    }
+
+                    // Coefficient différent de 1 en absolue
+                    if (Math.abs(coefficients[i][j]) != 1) {
+                        elem += String(coefficients[i][j]);
+                    }
+                    elem += LETTERS[j];
+
+                    // N'est pas un paramètre (détermine si gauche ou droite)
+                    if (is_parameter) {
+                        line_a_equal += elem;
+                    } else {
+                        line_b_equal += elem;
+                    }
+                }
+            }
+
+            // Le premier membre démarre par un "+"
+            line_b_equal = line_b_equal[0] == "+" ? line_b_equal.slice(1) : line_b_equal;
+    
+            // Concaténation de la ligne
+            conc_systeme += line_b_equal + "&=" + coefficients[i].slice(-1) + line_a_equal + "\\\\";
+        }
+
+        conc_systeme += "\\end{aligned} \\right. $";
+        solution_p.innerHTML += conc_systeme;
 
     } else {
         let conclusion = document.createElement("p");
@@ -505,6 +556,8 @@ let solution_p = document.getElementById("solution");
 
 // Paramètres
 let LETTERS = ["x", "y", "z", "t", "a", "b", "c", "d", "e", "f"];
+let PARAMETERS = ["\\alpha", "\\beta", "\\gamma", "\\delta", "\\epsilon", "\\zeta", "\\eta", "\\theta", "\\iota"];
+
 let BASE_NUM_EQUATIONS = 2;
 let BASE_NUM_VARIABLES = 2;
 
@@ -514,6 +567,8 @@ let num_variables = 0;
 
 let coefficients = [];
 
+let parameters = [];
+
 // Principal
 for (let i = 0; i < BASE_NUM_VARIABLES; i++) {
     add_variable();
@@ -522,3 +577,5 @@ for (let i = 0; i < BASE_NUM_VARIABLES; i++) {
 for (let i = 0; i < BASE_NUM_EQUATIONS; i++) {
     add_equation();
 }
+
+// console.log(window.MathJax)
