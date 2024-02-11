@@ -232,6 +232,7 @@ function create_html_variable(i, j, letter) {
     num_input.setAttribute("maxlength", "3");
     num_input.setAttribute("class", "number_input");
     num_input.setAttribute("id", "coefficient_" + String(j) + "_" + String(i));
+    num_input.setAttribute("autocomplete", "off");
     
     cell.appendChild(num_input);
 
