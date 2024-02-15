@@ -466,80 +466,80 @@ function solve_system() {
         matrices += "\\end{align*} $"
 
         solution_p.innerHTML += matrices;
+
+        if (is_compatible) {
+            // Réécriture du système /!\ changement variable pour paramètres + lignes vides
+            let re_systeme = document.createElement("p");
+            re_systeme.innerHTML = "Ce qui donne le système suivant :";
+    
+            solution_p.appendChild(re_systeme);
+            
+            let conc_systeme ="$ \\left \\{ \\begin{aligned}";
+            
+            for (let i = 0; i < coefficients.length; i++) {
+                let line_b_equal = "";
+                let line_a_equal = "";
+    
+                for (let j = 0; j < coefficients[0].length - 1; j++) {
+                    // Détermine si paramètre ou inconnue principale
+                    let is_parameter = false;
+                    for (let k = 0; k < parameters.length; k++) {
+                        if (j == parameters[k]) {
+                            is_parameter = true;
+                            coefficients[i][j] *= -1;
+                        }
+                    }
+    
+                    // Coefficient (i, j) non nul
+                    if (coefficients[i][j] != 0) {
+                        let elem = "";
+    
+                        // Positif
+                        if (coefficients[i][j] > 0) {
+                            elem += "+";
+                        }
+    
+                        // Coefficient différent de 1 en absolue
+                        if (Math.abs(coefficients[i][j]) != 1) {
+                            elem += String(coefficients[i][j]);
+                        }
+                        elem += LETTERS[j];
+    
+                        // N'est pas un paramètre (détermine si gauche ou droite)
+                        if (is_parameter) {
+                            line_a_equal += elem;
+                        } else {
+                            line_b_equal += elem;
+                        }
+                    }
+                }
+    
+                // Le premier membre démarre par un "+"
+                line_b_equal = line_b_equal[0] == "+" ? line_b_equal.slice(1) : line_b_equal;
+        
+                // Concaténation de la ligne
+                conc_systeme += line_b_equal + "&=" + coefficients[i].slice(-1) + line_a_equal + "\\\\";
+            }
+    
+            conc_systeme += "\\end{aligned} \\right. $";
+            solution_p.innerHTML += conc_systeme;
+    
+        } else {
+            let conclusion = document.createElement("p");
+            conclusion.innerHTML = "Ce système est incompatible et n'admet donc aucune solution.";
+    
+            let set_solutions = "$ S = \\emptyset $";
+    
+            solution_p.appendChild(conclusion);
+            solution_p.innerHTML += set_solutions;
+        }
+        // Conversion LaTex => HTML
+        MathJax.typeset([solution_p]);
     } else {
         if (is_compatible) {
             alert("Une équation/variable ne peut pas ne pas être utilisée.");
         }
     }
-
-    if (is_compatible) {
-        // Réécriture du système /!\ changement variable pour paramètres + lignes vides
-        let re_systeme = document.createElement("p");
-        re_systeme.innerHTML = "Ce qui donne le système suivant :";
-
-        solution_p.appendChild(re_systeme);
-        
-        let conc_systeme ="$ \\left \\{ \\begin{aligned}";
-        
-        for (let i = 0; i < coefficients.length; i++) {
-            let line_b_equal = "";
-            let line_a_equal = "";
-
-            for (let j = 0; j < coefficients[0].length - 1; j++) {
-                // Détermine si paramètre ou inconnue principale
-                let is_parameter = false;
-                for (let k = 0; k < parameters.length; k++) {
-                    if (j == parameters[k]) {
-                        is_parameter = true;
-                        coefficients[i][j] *= -1;
-                    }
-                }
-
-                // Coefficient (i, j) non nul
-                if (coefficients[i][j] != 0) {
-                    let elem = "";
-
-                    // Positif
-                    if (coefficients[i][j] > 0) {
-                        elem += "+";
-                    }
-
-                    // Coefficient différent de 1 en absolue
-                    if (Math.abs(coefficients[i][j]) != 1) {
-                        elem += String(coefficients[i][j]);
-                    }
-                    elem += LETTERS[j];
-
-                    // N'est pas un paramètre (détermine si gauche ou droite)
-                    if (is_parameter) {
-                        line_a_equal += elem;
-                    } else {
-                        line_b_equal += elem;
-                    }
-                }
-            }
-
-            // Le premier membre démarre par un "+"
-            line_b_equal = line_b_equal[0] == "+" ? line_b_equal.slice(1) : line_b_equal;
-    
-            // Concaténation de la ligne
-            conc_systeme += line_b_equal + "&=" + coefficients[i].slice(-1) + line_a_equal + "\\\\";
-        }
-
-        conc_systeme += "\\end{aligned} \\right. $";
-        solution_p.innerHTML += conc_systeme;
-
-    } else {
-        let conclusion = document.createElement("p");
-        conclusion.innerHTML = "Ce système est incompatible et n'admet donc aucune solution.";
-
-        let set_solutions = "$ S = \\emptyset $";
-
-        solution_p.appendChild(conclusion);
-        solution_p.innerHTML += set_solutions;
-    }
-    // Conversion LaTex => HTML
-    MathJax.typeset([solution_p]);
 }
 
 // Éléments HTML
